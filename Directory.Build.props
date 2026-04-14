@@ -1,0 +1,24 @@
+﻿<Project>
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <AnalysisLevel>latest</AnalysisLevel>
+        <EnableNETAnalyzers>true</EnableNETAnalyzers>
+
+        <!-- Nuget Global Metadata -->
+        <Title>DevSource.Foundation</Title>
+        <Description></Description>
+        <Authors>DevSource Team</Authors>
+        <Company>DevSource</Company>
+        <PackageProjectUrl>https://github.com/Devsourceio/devsource-foundation</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/Devsourceio/devsource-foundation</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageTags>DDD, best-practices, bestpractices</PackageTags>
+        <Version>1.0.0</Version>
+    </PropertyGroup>    
+</Project>
