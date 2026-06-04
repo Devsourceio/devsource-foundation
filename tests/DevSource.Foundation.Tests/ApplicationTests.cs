@@ -1,7 +1,6 @@
 using System.Linq.Expressions;
 using DevSource.Foundation.Abstractions;
 using DevSource.Foundation.Application;
-using DevSource.Stack.Application;
 
 namespace DevSource.Foundation.Tests;
 

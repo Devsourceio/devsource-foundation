@@ -1,4 +1,4 @@
-namespace DevSource.Stack.Application;
+namespace DevSource.Foundation.Application;
 
 /// <summary>
 /// Provides access to the current tenant context.

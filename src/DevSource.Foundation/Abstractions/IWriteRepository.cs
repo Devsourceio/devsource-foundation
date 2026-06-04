@@ -8,22 +8,6 @@ namespace DevSource.Foundation.Abstractions;
 public interface IWriteRepository<TWriteModel, in TId>
 {
     /// <summary>
-    /// Gets a write model by identifier.
-    /// </summary>
-    /// <param name="id">Write model identifier.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The writing model when found; otherwise <see langword="null"/>.</returns>
-    Task<TWriteModel?> GetByIdAsync(TId id, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Checks whether a writing model exists for the provided identifier.
-    /// </summary>
-    /// <param name="id">Write model identifier.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns><see langword="true"/> when the write model exists.</returns>
-    Task<bool> ExistsAsync(TId id, CancellationToken cancellationToken = default);
-
-    /// <summary>
     /// Adds a new writing model for persistence.
     /// </summary>
     /// <param name="model">Write a model instance.</param>

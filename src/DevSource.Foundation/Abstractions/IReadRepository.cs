@@ -1,5 +1,3 @@
-using DevSource.Stack.Abstractions;
-
 namespace DevSource.Foundation.Abstractions;
 
 /// <summary>
@@ -8,6 +6,22 @@ namespace DevSource.Foundation.Abstractions;
 /// <typeparam name="TReadModel">The read model type.</typeparam>
 public interface IReadRepository<TReadModel>
 {
+    /// <summary>
+    /// Gets a single read model by specification.
+    /// </summary>
+    /// <param name="specification">Query specification.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The read model when found; otherwise <see langword="null"/>.</returns>
+    Task<TReadModel?> GetByIdAsync(ISpecification<TReadModel> specification, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets a single read model by specification.
+    /// </summary>
+    /// <param name="specification">Query specification.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The read model when found; otherwise <see langword="null"/>.</returns>
+    Task<bool> ExistsAsync(ISpecification<TReadModel> specification, CancellationToken cancellationToken = default);
+    
     /// <summary>
     /// Gets a single read model by specification.
     /// </summary>

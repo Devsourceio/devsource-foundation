@@ -1,4 +1,4 @@
-namespace DevSource.Stack.Application;
+namespace DevSource.Foundation.Application;
 
 /// <summary>
 /// Provides UTC date and time values for application use cases.

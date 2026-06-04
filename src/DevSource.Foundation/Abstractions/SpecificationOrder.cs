@@ -1,5 +1,3 @@
-using DevSource.Stack.Abstractions;
-
 namespace DevSource.Foundation.Abstractions;
 
 /// <summary>

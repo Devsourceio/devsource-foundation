@@ -1,4 +1,4 @@
-namespace DevSource.Stack.Abstractions;
+namespace DevSource.Foundation.Abstractions;
 
 /// <summary>
 /// Represents sorting direction.
