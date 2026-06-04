@@ -79,3 +79,23 @@ public abstract class Entity<TId> : IEquatable<Entity<TId>>
         return EqualityComparer<TId>.Default.Equals(Id, default!);
     }
 }
+
+/// <summary>
+/// Represents a base entity class with a Guid as the default identifier type.
+/// </summary>
+public abstract class Entity : Entity<Guid>
+{
+    /// <summary>
+    /// Represents a base entity class with a Guid as the default identifier type.
+    /// </summary>
+    protected Entity()
+    {
+    }
+
+    /// <summary>
+    /// Represents a base entity class with a Guid as the default identifier type.
+    /// </summary>
+    protected Entity(Guid id) : base(id)
+    {
+    }
+}
