@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using System.Globalization;
 using DevSource.Foundation.Abstractions;
 
 namespace DevSource.Foundation.Application;
@@ -16,6 +17,7 @@ public sealed class SpecificationEvaluator<T> : ISpecificationEvaluator<T>
         ArgumentNullException.ThrowIfNull(specification);
 
         var filtered = ApplyPredicate(query, BuildPredicate(specification));
+        filtered = ApplyPredicate(filtered, BuildCursorPredicate(specification));
         var ordered = ApplyOrdering(filtered, specification.Orders);
         return ApplyPagination(ordered, specification.Pagination);
     }
@@ -73,6 +75,65 @@ public sealed class SpecificationEvaluator<T> : ISpecificationEvaluator<T>
         }
 
         return paged.Take(pagination.Take);
+    }
+
+    private static Expression<Func<T, bool>>? BuildCursorPredicate(ISpecification<T> specification)
+    {
+        var pagination = specification.Pagination;
+        if (pagination?.Cursor is null)
+        {
+            return null;
+        }
+
+        var order = specification.Orders.FirstOrDefault()
+            ?? throw new InvalidOperationException("Cursor pagination requires at least one ordering instruction.");
+
+        var parameter = Expression.Parameter(typeof(T), "x");
+        var member = BuildMemberAccess(parameter, order.Field.Path);
+        var underlyingType = Nullable.GetUnderlyingType(member.Type) ?? member.Type;
+        var cursorValue = ConvertValue(pagination.Cursor, underlyingType, "cursor");
+        Expression right = Expression.Constant(cursorValue, underlyingType);
+
+        if (member.Type != underlyingType)
+        {
+            right = Expression.Convert(right, member.Type);
+        }
+
+        Expression comparison;
+        if (underlyingType == typeof(string))
+        {
+            var compare = Expression.Call(
+                typeof(string),
+                nameof(string.Compare),
+                Type.EmptyTypes,
+                member,
+                right,
+                Expression.Constant(StringComparison.Ordinal));
+
+            comparison = order.Direction == SpecificationOrderDirection.Ascending
+                ? Expression.GreaterThan(compare, Expression.Constant(0))
+                : Expression.LessThan(compare, Expression.Constant(0));
+        }
+        else
+        {
+            if (!typeof(IComparable).IsAssignableFrom(underlyingType))
+            {
+                throw new InvalidOperationException(
+                    $"Cursor pagination requires an order field that supports comparison; '{underlyingType.Name}' does not.");
+            }
+
+            comparison = order.Direction == SpecificationOrderDirection.Ascending
+                ? Expression.GreaterThan(member, right)
+                : Expression.LessThan(member, right);
+        }
+
+        if (!member.Type.IsValueType || Nullable.GetUnderlyingType(member.Type) is not null)
+        {
+            var notNull = Expression.NotEqual(member, Expression.Constant(null, member.Type));
+            comparison = Expression.AndAlso(notNull, comparison);
+        }
+
+        return Expression.Lambda<Func<T, bool>>(comparison, parameter);
     }
 
     private static Expression<Func<T, bool>>? BuildPredicate(ISpecification<T> specification)
@@ -149,12 +210,16 @@ public sealed class SpecificationEvaluator<T> : ISpecificationEvaluator<T>
             };
 
             body = Expression.Call(member, methodName, Type.EmptyTypes, constant);
+
+            if (!member.Type.IsValueType || Nullable.GetUnderlyingType(member.Type) is not null)
+            {
+                var notNull = Expression.NotEqual(member, Expression.Constant(null, member.Type));
+                body = Expression.AndAlso(notNull, body);
+            }
         }
         else
         {
-            var constantValue = filter.Value is null
-                ? null
-                : Convert.ChangeType(filter.Value, underlyingType);
+            var constantValue = ConvertValue(filter.Value, underlyingType, nameof(filter.Value));
 
             Expression right = Expression.Constant(constantValue, underlyingType);
 
@@ -173,9 +238,55 @@ public sealed class SpecificationEvaluator<T> : ISpecificationEvaluator<T>
                 SpecificationFilterOperator.LessThanOrEqual => Expression.LessThanOrEqual(member, right),
                 _ => throw new InvalidOperationException($"Unsupported operator '{filter.Operator}'."),
             };
+
+            if (!member.Type.IsValueType || Nullable.GetUnderlyingType(member.Type) is not null)
+            {
+                var notNull = Expression.NotEqual(member, Expression.Constant(null, member.Type));
+                body = Expression.AndAlso(notNull, body);
+            }
         }
 
         return Expression.Lambda<Func<T, bool>>(body, parameter);
+    }
+
+    private static object? ConvertValue(object? value, Type targetType, string parameterName)
+    {
+        if (value is null)
+        {
+            if (targetType.IsValueType && Nullable.GetUnderlyingType(targetType) is null)
+            {
+                throw new ArgumentException($"A value is required for field type '{targetType.Name}'.", parameterName);
+            }
+
+            return null;
+        }
+
+        if (targetType.IsInstanceOfType(value))
+        {
+            return value;
+        }
+
+        try
+        {
+            if (targetType == typeof(Guid))
+            {
+                return Guid.Parse(value.ToString()!);
+            }
+
+            if (targetType.IsEnum)
+            {
+                return Enum.Parse(targetType, value.ToString()!, ignoreCase: true);
+            }
+
+            return Convert.ChangeType(value, targetType, CultureInfo.InvariantCulture);
+        }
+        catch (Exception exception) when (exception is FormatException or InvalidCastException or OverflowException or ArgumentException)
+        {
+            throw new ArgumentException(
+                $"Value '{value}' cannot be converted to '{targetType.Name}'.",
+                parameterName,
+                exception);
+        }
     }
 
     private static Expression BuildMemberAccess(Expression parameter, string path)

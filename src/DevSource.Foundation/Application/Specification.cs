@@ -13,16 +13,30 @@ public abstract class Specification<T> : ISpecification<T>
     private readonly List<SpecificationFilter> _filters = [];
     private readonly List<SpecificationOrder> _orders = [];
     private readonly HashSet<string> _allowedFields = new(StringComparer.Ordinal);
+    private readonly List<string> _allowedFieldList = [];
+    private readonly ReadOnlyCollection<SpecificationFilter> _filtersView;
+    private readonly ReadOnlyCollection<SpecificationOrder> _ordersView;
+    private readonly ReadOnlyCollection<string> _allowedFieldsView;
+
+    /// <summary>
+    /// Initializes an empty specification.
+    /// </summary>
+    protected Specification()
+    {
+        _filtersView = new ReadOnlyCollection<SpecificationFilter>(_filters);
+        _ordersView = new ReadOnlyCollection<SpecificationOrder>(_orders);
+        _allowedFieldsView = new ReadOnlyCollection<string>(_allowedFieldList);
+    }
 
     /// <summary>
     /// Gets specification filters.
     /// </summary>
-    public IReadOnlyCollection<SpecificationFilter> Filters => new ReadOnlyCollection<SpecificationFilter>(_filters);
+    public IReadOnlyCollection<SpecificationFilter> Filters => _filtersView;
 
     /// <summary>
     /// Gets specification sorting instructions.
     /// </summary>
-    public IReadOnlyCollection<SpecificationOrder> Orders => new ReadOnlyCollection<SpecificationOrder>(_orders);
+    public IReadOnlyCollection<SpecificationOrder> Orders => _ordersView;
 
     /// <summary>
     /// Gets optional pagination settings.
@@ -32,7 +46,7 @@ public abstract class Specification<T> : ISpecification<T>
     /// <summary>
     /// Gets the field whitelist used for filter and order validation.
     /// </summary>
-    public IReadOnlyCollection<string> AllowedFields => new ReadOnlyCollection<string>(_allowedFields.ToList());
+    public IReadOnlyCollection<string> AllowedFields => _allowedFieldsView;
 
     /// <summary>
     /// Gets the composition mode.
@@ -57,7 +71,10 @@ public abstract class Specification<T> : ISpecification<T>
     protected void AllowField<TMember>(Expression<Func<T, TMember>> fieldExpression)
     {
         var field = SpecificationFieldResolver.Resolve(fieldExpression);
-        _allowedFields.Add(field.Path);
+        if (_allowedFields.Add(field.Path))
+        {
+            _allowedFieldList.Add(field.Path);
+        }
     }
 
     /// <summary>

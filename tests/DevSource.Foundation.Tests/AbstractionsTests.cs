@@ -13,7 +13,7 @@ public sealed class AbstractionsTests
         // Act
         var filter = new SpecificationFilter(field, SpecificationFilterOperator.Contains, "devsource");
         var order = new SpecificationOrder(field, SpecificationOrderDirection.Descending);
-        var pagination = new SpecificationPagination(5, 10, "cursor-1");
+        var pagination = new SpecificationPagination(0, 10, "cursor-1");
 
         // Assert
         Assert.Equal("Name", field.Name);
@@ -24,7 +24,7 @@ public sealed class AbstractionsTests
         Assert.Equal("devsource", filter.Value);
         Assert.Same(field, order.Field);
         Assert.Equal(SpecificationOrderDirection.Descending, order.Direction);
-        Assert.Equal(5, pagination.Skip);
+        Assert.Equal(0, pagination.Skip);
         Assert.Equal(10, pagination.Take);
         Assert.Equal("cursor-1", pagination.Cursor);
     }

@@ -35,6 +35,13 @@ public class Result
     /// <param name="errors">The collection of errors associated with the operation.</param>
     protected Result(bool isSuccess, IReadOnlyCollection<Error> errors)
     {
+        ArgumentNullException.ThrowIfNull(errors);
+
+        if (errors.Any(error => error is null))
+        {
+            throw new ArgumentException("Errors cannot contain null values.", nameof(errors));
+        }
+
         switch (isSuccess)
         {
             case true when errors.Count > 0:
@@ -89,7 +96,6 @@ public class Result
         ArgumentNullException.ThrowIfNull(errors);
 
         var normalizedErrors = errors
-            .Where(error => true)
             .Distinct()
             .ToArray();
 
@@ -170,7 +176,9 @@ public sealed class Result<T> : Result
     {
         ArgumentNullException.ThrowIfNull(errors);
 
-        var normalizedErrors = errors.Where(error => true).Distinct().ToArray();
+        var normalizedErrors = errors
+            .Distinct()
+            .ToArray();
 
         if (normalizedErrors.Length == 0)
         {

@@ -1,4 +1,6 @@
 using DevSource.Foundation.Abstractions;
+using DevSource.Foundation.Domain;
+using DevSource.Foundation.Primitives;
 
 namespace DevSource.Foundation.Application;
 
@@ -26,6 +28,23 @@ public abstract class ApplicationService
     protected IUnitOfWork UnitOfWork { get; }
 
     /// <summary>
+    /// Dispatches pending domain events after the application operation has completed.
+    /// </summary>
+    /// <typeparam name="TId">The aggregate identifier type.</typeparam>
+    /// <param name="aggregate">Aggregate containing pending domain events.</param>
+    /// <param name="dispatcher">Domain event dispatcher.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    protected static Task DispatchDomainEventsAsync<TId>(
+        AggregateRoot<TId> aggregate,
+        IDomainEventDispatcher dispatcher,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(aggregate);
+        ArgumentNullException.ThrowIfNull(dispatcher);
+        return dispatcher.DispatchAsync(aggregate, cancellationToken);
+    }
+
+    /// <summary>
     /// Commits pending transactional changes.
     /// </summary>
     /// <param name="cancellationToken">Cancellation token.</param>
@@ -51,6 +70,11 @@ public abstract class ApplicationService
 
     /// <summary>
     /// Executes an asynchronous operation with result and commits on success.
+    /// <remarks>
+    /// When the result is a <see cref="Result"/> (including <see cref="Result{TResult}"/>),
+    /// failed results are returned without committing. Other result types commit after normal
+    /// completion; thrown exceptions also prevent this method from reaching the commit.
+    /// </remarks>
     /// </summary>
     /// <typeparam name="TResult">Operation result type.</typeparam>
     /// <param name="operation">Operation to execute.</param>
@@ -63,7 +87,14 @@ public abstract class ApplicationService
         ArgumentNullException.ThrowIfNull(operation);
 
         var result = await operation(cancellationToken).ConfigureAwait(false);
-        await UnitOfWork.CommitAsync(cancellationToken).ConfigureAwait(false);
+
+        // Result failures are expected business outcomes, not successful transactional operations.
+        // They must not persist pending changes merely because the delegate completed without throwing.
+        if (result is not Result { IsFailure: true })
+        {
+            await UnitOfWork.CommitAsync(cancellationToken).ConfigureAwait(false);
+        }
+
         return result;
     }
 }

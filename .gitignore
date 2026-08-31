@@ -7,6 +7,7 @@
 .env
 .ai
 AGENT.md
+.junie
 
 # User-specific files
 *.rsuser

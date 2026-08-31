@@ -11,7 +11,7 @@
 
         <!-- Nuget Global Metadata -->
         <Title>DevSource.Foundation</Title>
-        <Description></Description>
+        <Description>DevSource Foundation is a lightweight .NET foundation library for building cloud-native applications with clear architectural boundaries. It provides reusable primitives, domain building blocks, provider-agnostic repository contracts, and an extensible specification system for filtering, sorting, pagination, projection, and query composition.</Description>
         <Authors>DevSource Team</Authors>
         <Company>DevSource</Company>
         <PackageProjectUrl>https://github.com/Devsourceio/devsource-foundation</PackageProjectUrl>
@@ -19,6 +19,6 @@
         <RepositoryType>git</RepositoryType>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageTags>DDD, best-practices, bestpractices</PackageTags>
-        <Version>1.0.0</Version>
+        <Version>2.0.0</Version>
     </PropertyGroup>    
 </Project>

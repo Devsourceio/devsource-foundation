@@ -7,23 +7,23 @@ namespace DevSource.Foundation.Abstractions;
 public interface IReadRepository<TReadModel>
 {
     /// <summary>
-    /// Gets a single read model by specification.
+    /// Gets a single read model using a specification intended to identify it.
     /// </summary>
     /// <param name="specification">Query specification.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The read model when found; otherwise <see langword="null"/>.</returns>
+    /// <returns>The matching read model when found; otherwise <see langword="null"/>.</returns>
     Task<TReadModel?> GetByIdAsync(ISpecification<TReadModel> specification, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets a single read model by specification.
+    /// Determines whether at least one read model matches a specification.
     /// </summary>
     /// <param name="specification">Query specification.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The read model when found; otherwise <see langword="null"/>.</returns>
+    /// <returns><see langword="true"/> when at least one model matches; otherwise <see langword="false"/>.</returns>
     Task<bool> ExistsAsync(ISpecification<TReadModel> specification, CancellationToken cancellationToken = default);
     
     /// <summary>
-    /// Gets a single read model by specification.
+    /// Gets a single read model by a specification.
     /// </summary>
     /// <param name="specification">Query specification.</param>
     /// <param name="cancellationToken">Cancellation token.</param>

@@ -8,16 +8,16 @@ namespace DevSource.Foundation.Abstractions;
 public interface IWriteRepository<TWriteModel, in TId>
 {
     /// <summary>
-    /// Adds a new writing model for persistence.
+    /// Adds a new write model for persistence.
     /// </summary>
-    /// <param name="model">Write a model instance.</param>
+    /// <param name="model">Write model instance.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     Task AddAsync(TWriteModel model, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Removes a write model from persistence.
     /// </summary>
-    /// <param name="model">Write a model instance.</param>
+    /// <param name="model">Write model instance.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     Task RemoveAsync(TWriteModel model, CancellationToken cancellationToken = default);
 }

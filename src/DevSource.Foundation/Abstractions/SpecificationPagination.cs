@@ -28,6 +28,19 @@ public sealed class SpecificationPagination
     /// <param name="cursor">Optional cursor token.</param>
     public SpecificationPagination(int skip, int take, string? cursor = null)
     {
+        ArgumentOutOfRangeException.ThrowIfNegative(skip);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(take);
+
+        if (cursor is not null && string.IsNullOrWhiteSpace(cursor))
+        {
+            throw new ArgumentException("Cursor cannot be empty or whitespace.", nameof(cursor));
+        }
+
+        if (cursor is not null && skip != 0)
+        {
+            throw new ArgumentException("Cursor pagination cannot be combined with an offset.", nameof(skip));
+        }
+
         Skip = skip;
         Take = take;
         Cursor = cursor;

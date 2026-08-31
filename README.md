@@ -3,7 +3,7 @@
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
 [![C%23](https://img.shields.io/badge/C%23-13-239120?logo=csharp)](https://learn.microsoft.com/dotnet/csharp/)
 [![NuGet](https://img.shields.io/badge/NuGet-not%20published%20yet-004880?logo=nuget)](https://www.nuget.org/)
-[![Tests](https://img.shields.io/badge/tests-68%20passing-brightgreen)](#running-tests)
+[![Tests](https://img.shields.io/badge/tests-75%20passing-brightgreen)](#running-tests)
 
 DevSource Foundation is a lightweight .NET foundation library for building cloud-native applications with clear architectural boundaries. It provides reusable primitives, domain building blocks, provider-agnostic repository contracts, and an extensible specification system for filtering, sorting, pagination, projection, and query composition.
 
@@ -268,6 +268,20 @@ Behavior:
 - `AddDomainEvent` rejects `null`
 - publication is intentionally outside the domain model
 
+The application layer can register in-process domain event handlers with ASP.NET Core dependency
+injection:
+
+```csharp
+services.AddDomainEvents()
+    .AddHandler<OrderPlacedDomainEvent, OrderPlacedHandler>();
+```
+
+Handlers implement `IDomainEventHandler<TEvent>` and are resolved using the configured scoped
+service provider. Multiple handlers for the same event run sequentially in registration order.
+The dispatcher clears aggregate events only after all handlers complete successfully; if a handler
+fails, the events remain pending. Domain event dispatching and unit-of-work commit are separate
+operations, so the application service decides their order and retry policy.
+
 ### 8. Repository Abstractions
 
 The library defines contracts without tying you to any ORM or query provider.
@@ -434,6 +448,27 @@ public sealed class CustomerReadModel
 }
 ```
 
+### Pagination
+
+Offset pagination uses `Paginate(skip, take)`. Cursor pagination uses `Paginate(cursor, take)` and
+requires an ordering instruction; the cursor is interpreted using the first ordering field. Cursor
+pagination cannot be combined with a non-zero offset, and `take` must be greater than zero.
+
+```csharp
+public sealed class CustomersAfterNameSpecification : Specification<CustomerReadModel>
+{
+    public CustomersAfterNameSpecification(string cursor)
+    {
+        AllowField(x => x.Name);
+        OrderBy(x => x.Name);
+        Paginate(cursor, 20);
+    }
+}
+```
+
+Cursor values are converted using invariant culture, with support for strings, enums, GUIDs, and
+other comparable scalar types. Invalid cursor or filter values throw `ArgumentException`.
+
 ### Projection
 
 ```csharp
@@ -530,9 +565,11 @@ tests/
 
 - The source library targets `net10.0`.
 - The current repository includes xUnit tests for the core API surface.
-- The NuGet badge is informational for now because the package is not yet published.
+- The NuGet badge is informational for now because the package is not yet published. Package
+  metadata currently declares version `1.0.0`; update it before publishing the next release.
 - The tests badge is static until a CI workflow is added to the repository.
 
 ## License
 
-This repository does not currently declare a license file.
+NuGet metadata declares the MIT license expression, although the repository does not currently
+include a `LICENSE` file.
