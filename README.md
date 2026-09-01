@@ -308,7 +308,7 @@ Important detail:
 - repository contracts do not expose `IQueryable` or raw expressions
 - complex queries should be represented through specifications
 
-### 9. Unit of Work, Cache, and Event Bus Contracts
+### 9. Unit of Work, Cache, Event Bus, and Outbox Contracts
 
 These contracts support application orchestration without forcing a specific infrastructure implementation.
 
@@ -335,6 +335,27 @@ Provided contracts:
 - `IUnitOfWork`
 - `ICache`
 - `IEventBus`
+- `IOutboxStore`, `OutboxMessage`, and `OutboxMessageStatus`
+
+The Outbox contract keeps integration-event delivery reliable when a business change and
+event publication must be consistent. Create an `OutboxMessage`, add it through
+`IOutboxStore` before the enclosing `IUnitOfWork.CommitAsync()`, and let an infrastructure
+worker publish pending messages through `IEventBus`. The worker should mark messages as
+processed only after successful publication and record failures for retry. The message status
+should remain `Pending` until publication succeeds, become `Published` after success, or become
+`Failed` after an unsuccessful attempt; failed messages can be explicitly requeued. Database mappings,
+locking/claiming, serialization type resolution, and worker scheduling remain outside this
+provider-agnostic library.
+
+```csharp
+var message = OutboxMessageFactory.Create(
+    new CustomerRegistered(customer.Id),
+    occurredOnUtc,
+    jsonOptions);
+
+await outboxStore.AddAsync(message, cancellationToken);
+await unitOfWork.CommitAsync(cancellationToken);
+```
 
 ### 10. Application Services
 
